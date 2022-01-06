@@ -5,6 +5,7 @@ vendor/
 .dccache
 .ruby-version
 Gemfile.local
+Gemfile.lock
 results.xml
 /vmpooler.yaml
 
