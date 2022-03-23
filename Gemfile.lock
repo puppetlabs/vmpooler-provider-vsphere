@@ -156,7 +156,7 @@ GEM
     spoon (0.0.6)
       ffi
     statsd-ruby (1.5.0)
-    thor (1.1.0)
+    thor (1.2.1)
     thrift (0.15.0)
     tilt (2.0.10)
     unicode-display_width (1.8.0)
