@@ -41,7 +41,7 @@ GEM
     json (2.6.1)
     json (2.6.1-java)
     method_source (1.0.0)
-    mock_redis (0.29.0)
+    mock_redis (0.31.0)
       ruby2_keywords
     multipart-post (2.1.1)
     mustermann (1.1.1)
