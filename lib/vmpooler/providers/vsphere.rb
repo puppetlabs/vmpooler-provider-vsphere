@@ -599,7 +599,7 @@ module Vmpooler
           boottime = vm_object.runtime.bootTime if vm_object.runtime&.bootTime
           powerstate = vm_object.runtime.powerState if vm_object.runtime&.powerState
 
-          ip_maxloop = 60
+          ip_maxloop = 240
           ip_loop_delay = 1
           ip_loop_count = 1
           ip = nil
