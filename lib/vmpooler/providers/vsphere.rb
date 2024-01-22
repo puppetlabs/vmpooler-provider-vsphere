@@ -1225,6 +1225,27 @@ module Vmpooler
           return true if pool['create_linked_clone']
           return true if @config[:config]['create_linked_clones']
         end
+
+        def get_provisioning_trace(vm_name, pool_name)
+          vm_object = nil
+          events = nil
+          @connection_pool.with_metrics do |pool_object|
+            connection = ensured_vsphere_connection(pool_object)
+            vm_object = find_vm(pool_name, vm_name, connection)
+            event_manager = connection.serviceContent.eventManager
+            event_filter_spec = RbVmomi::VIM::EventFilterSpec.new(
+              entity: RbVmomi::VIM::EventFilterSpecByEntity.new(entity: vm_object, recursion: RbVmomi::VIM::EventFilterSpecRecursionOption(:all)),
+              maxCount: 100 # Limit the number of events returned
+            )
+            # find events for vm
+            events = event_manager.QueryEvents(filter: event_filter_spec)
+          end
+          return nil if !events || events.empty?
+
+          # convert events to json, include only the fullFormattedMessage
+          messages = events.map(&:fullFormattedMessage)
+          JSON.generate(messages)
+        end
       end
     end
   end
