@@ -186,14 +186,16 @@ module Vmpooler
 
         def vms_in_pool(pool_name)
           vms = []
-          @connection_pool.with_metrics do |pool_object|
-            connection = ensured_vsphere_connection(pool_object)
-            folder_object = find_vm_folder(pool_name, connection)
+          with_circuit_breaker do
+            @connection_pool.with_metrics do |pool_object|
+              connection = ensured_vsphere_connection(pool_object)
+              folder_object = find_vm_folder(pool_name, connection)
 
-            return vms if folder_object.nil?
+              next if folder_object.nil?
 
-            folder_object.childEntity.each do |vm|
-              vms << { 'name' => vm.name } if vm.is_a? RbVmomi::VIM::VirtualMachine
+              folder_object.childEntity.each do |vm|
+                vms << { 'name' => vm.name } if vm.is_a? RbVmomi::VIM::VirtualMachine
+              end
             end
           end
           vms
@@ -305,12 +307,14 @@ module Vmpooler
 
         def get_vm(pool_name, vm_name)
           vm_hash = nil
-          @connection_pool.with_metrics do |pool_object|
-            connection = ensured_vsphere_connection(pool_object)
-            vm_object = find_vm(pool_name, vm_name, connection)
-            return vm_hash if vm_object.nil?
+          with_circuit_breaker do
+            @connection_pool.with_metrics do |pool_object|
+              connection = ensured_vsphere_connection(pool_object)
+              vm_object = find_vm(pool_name, vm_name, connection)
+              next if vm_object.nil?
 
-            vm_hash = generate_vm_hash(vm_object, pool_name)
+              vm_hash = generate_vm_hash(vm_object, pool_name)
+            end
           end
           vm_hash
         end
@@ -320,86 +324,92 @@ module Vmpooler
           raise("Pool #{pool_name} does not exist for the provider #{name}") if pool.nil?
 
           vm_hash = nil
-          @connection_pool.with_metrics do |pool_object|
-            connection = ensured_vsphere_connection(pool_object)
-            # Assume all pool config is valid i.e. not missing
-            template_path = pool['template']
-            target_folder_path = pool['folder']
-            target_datastore = pool['datastore']
-            target_datacenter_name = get_target_datacenter_from_config(pool_name)
+          with_circuit_breaker do
+            @connection_pool.with_metrics do |pool_object|
+              connection = ensured_vsphere_connection(pool_object)
+              # Assume all pool config is valid i.e. not missing
+              template_path = pool['template']
+              target_folder_path = pool['folder']
+              target_datastore = pool['datastore']
+              target_datacenter_name = get_target_datacenter_from_config(pool_name)
 
-            # Get the template VM object
-            raise("Pool #{pool_name} did not specify a full path for the template for the provider #{name}") unless valid_template_path? template_path
+              # Get the template VM object
+              raise("Pool #{pool_name} did not specify a full path for the template for the provider #{name}") unless valid_template_path? template_path
 
-            template_vm_object = find_template_vm(pool, connection)
+              template_vm_object = find_template_vm(pool, connection)
 
-            extra_config = [
-              { key: 'guestinfo.hostname', value: new_vmname }
-            ]
+              extra_config = [
+                { key: 'guestinfo.hostname', value: new_vmname }
+              ]
 
-            if pool.key?('snapshot_mainMem_ioBlockPages')
-              ioblockpages = pool['snapshot_mainMem_ioBlockPages']
-              extra_config.push(
-                { key: 'mainMem.ioBlockPages', value: ioblockpages }
-              )
-            end
-            if pool.key?('snapshot_mainMem_iowait')
-              iowait = pool['snapshot_mainMem_iowait']
-              extra_config.push(
-                { key: 'mainMem.iowait', value: iowait }
-              )
-            end
-
-            # Annotate with creation time, origin template, etc.
-            # Add extraconfig options that can be queried by vmtools
-            config_spec = create_config_spec(new_vmname, template_path, extra_config)
-
-            # Check if alternate network configuration is specified and add configuration
-            if pool.key?('network')
-              template_vm_network_device = template_vm_object.config.hardware.device.grep(RbVmomi::VIM::VirtualEthernetCard).first
-              network_name = pool['network']
-              network_device = set_network_device(target_datacenter_name, template_vm_network_device, network_name, connection)
-              config_spec.deviceChange = [{ operation: 'edit', device: network_device }]
-            end
-
-            # Put the VM in the specified folder and resource pool
-            relocate_spec = create_relocate_spec(target_datastore, target_datacenter_name, pool_name, connection)
-
-            # Create a clone spec
-            clone_spec = create_clone_spec(relocate_spec, config_spec)
-
-            begin
-              vm_target_folder = find_vm_folder(pool_name, connection)
-              vm_target_folder ||= create_folder(connection, target_folder_path, target_datacenter_name) if @config[:config].key?('create_folders') && (@config[:config]['create_folders'] == true)
-            rescue StandardError
-              if @config[:config].key?('create_folders') && (@config[:config]['create_folders'] == true)
-                vm_target_folder = create_folder(connection, target_folder_path, target_datacenter_name)
-              else
-                raise
+              if pool.key?('snapshot_mainMem_ioBlockPages')
+                ioblockpages = pool['snapshot_mainMem_ioBlockPages']
+                extra_config.push(
+                  { key: 'mainMem.ioBlockPages', value: ioblockpages }
+                )
               end
+              if pool.key?('snapshot_mainMem_iowait')
+                iowait = pool['snapshot_mainMem_iowait']
+                extra_config.push(
+                  { key: 'mainMem.iowait', value: iowait }
+                )
+              end
+
+              # Annotate with creation time, origin template, etc.
+              # Add extraconfig options that can be queried by vmtools
+              config_spec = create_config_spec(new_vmname, template_path, extra_config)
+
+              # Check if alternate network configuration is specified and add configuration
+              if pool.key?('network')
+                template_vm_network_device = template_vm_object.config.hardware.device.grep(RbVmomi::VIM::VirtualEthernetCard).first
+                network_name = pool['network']
+                network_device = set_network_device(target_datacenter_name, template_vm_network_device, network_name, connection)
+                config_spec.deviceChange = [{ operation: 'edit', device: network_device }]
+              end
+
+              # Put the VM in the specified folder and resource pool
+              relocate_spec = create_relocate_spec(target_datastore, target_datacenter_name, pool_name, connection)
+
+              # Create a clone spec
+              clone_spec = create_clone_spec(relocate_spec, config_spec)
+
+              begin
+                vm_target_folder = find_vm_folder(pool_name, connection)
+                vm_target_folder ||= create_folder(connection, target_folder_path, target_datacenter_name) if @config[:config].key?('create_folders') && (@config[:config]['create_folders'] == true)
+              rescue StandardError
+                if @config[:config].key?('create_folders') && (@config[:config]['create_folders'] == true)
+                  vm_target_folder = create_folder(connection, target_folder_path, target_datacenter_name)
+                else
+                  raise
+                end
+              end
+              raise ArgumentError, "Cannot find the configured folder for #{pool_name} #{target_folder_path}" unless vm_target_folder
+
+              # Create the new VM
+              new_vm_object = template_vm_object.CloneVM_Task(
+                folder: vm_target_folder,
+                name: new_vmname,
+                spec: clone_spec
+              ).wait_for_completion
+
+              vm_hash = generate_vm_hash(new_vm_object, pool_name)
             end
-            raise ArgumentError, "Cannot find the configured folder for #{pool_name} #{target_folder_path}" unless vm_target_folder
-
-            # Create the new VM
-            new_vm_object = template_vm_object.CloneVM_Task(
-              folder: vm_target_folder,
-              name: new_vmname,
-              spec: clone_spec
-            ).wait_for_completion
-
-            vm_hash = generate_vm_hash(new_vm_object, pool_name)
           end
           vm_hash
         end
 
         # The inner method requires vmware tools running in the guest os
         def get_vm_ip_address(vm_name, pool_name)
-          @connection_pool.with_metrics do |pool_object|
-            connection = ensured_vsphere_connection(pool_object)
-            vm_object = find_vm(pool_name, vm_name, connection)
-            vm_hash = generate_vm_hash(vm_object, pool_name)
-            return vm_hash['ip']
+          ip = nil
+          with_circuit_breaker do
+            @connection_pool.with_metrics do |pool_object|
+              connection = ensured_vsphere_connection(pool_object)
+              vm_object = find_vm(pool_name, vm_name, connection)
+              vm_hash = generate_vm_hash(vm_object, pool_name)
+              ip = vm_hash['ip']
+            end
           end
+          ip
         end
 
         def create_config_spec(vm_name, template_name, extra_config)
@@ -540,17 +550,19 @@ module Vmpooler
         end
 
         def destroy_vm(pool_name, vm_name)
-          @connection_pool.with_metrics do |pool_object|
-            connection = ensured_vsphere_connection(pool_object)
-            vm_object = find_vm(pool_name, vm_name, connection)
-            # If a VM doesn't exist then it is effectively deleted
-            return true if vm_object.nil?
+          with_circuit_breaker do
+            @connection_pool.with_metrics do |pool_object|
+              connection = ensured_vsphere_connection(pool_object)
+              vm_object = find_vm(pool_name, vm_name, connection)
+              # If a VM doesn't exist then it is effectively deleted
+              next if vm_object.nil?
 
-            # Poweroff the VM if it's running
-            vm_object.PowerOffVM_Task.wait_for_completion if vm_object.runtime&.powerState && vm_object.runtime.powerState == 'poweredOn'
+              # Poweroff the VM if it's running
+              vm_object.PowerOffVM_Task.wait_for_completion if vm_object.runtime&.powerState && vm_object.runtime.powerState == 'poweredOn'
 
-            # Kill it with fire
-            vm_object.Destroy_Task.wait_for_completion
+              # Kill it with fire
+              vm_object.Destroy_Task.wait_for_completion
+            end
           end
           true
         end
@@ -630,6 +642,14 @@ module Vmpooler
         ADAPTER_TYPE = 'lsiLogic'
         DISK_TYPE = 'thin'
         DISK_MODE = 'persistent'
+
+        def with_circuit_breaker(&block)
+          if circuit_breaker
+            circuit_breaker.call(&block)
+          else
+            yield
+          end
+        end
 
         def ensured_vsphere_connection(connection_pool_object)
           connection_pool_object[:connection] = connect_to_vsphere unless vsphere_connection_ok?(connection_pool_object[:connection])
