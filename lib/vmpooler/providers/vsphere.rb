@@ -3,6 +3,7 @@
 require 'bigdecimal'
 require 'bigdecimal/util'
 require 'rbvmomi'
+require 'timeout'
 require 'vmpooler/providers/base'
 
 module Vmpooler
@@ -657,7 +658,9 @@ module Vmpooler
         end
 
         def vsphere_connection_ok?(connection)
-          _result = connection.serviceInstance.CurrentTime
+          Timeout.timeout(vsphere_connection_timeout) do
+            _result = connection.serviceInstance.CurrentTime
+          end
           true
         rescue StandardError
           false
@@ -671,7 +674,8 @@ module Vmpooler
             connection = RbVmomi::VIM.connect host: provider_config['server'],
                                               user: provider_config['username'],
                                               password: provider_config['password'],
-                                              insecure: provider_config['insecure'] || false
+                                              insecure: provider_config['insecure'] || false,
+                                              timeout: vsphere_connection_timeout
             metrics.increment('connect.open')
             connection
           rescue StandardError => e
@@ -682,6 +686,12 @@ module Vmpooler
             try += 1
             retry
           end
+        end
+
+        def vsphere_connection_timeout
+          timeout = provider_config['vsphere_timeout'] ||
+                    global_config&.dig(:config, 'vsphere_timeout') || 60
+          timeout.to_i
         end
 
         # This should supercede the open_socket method in the Pool Manager
