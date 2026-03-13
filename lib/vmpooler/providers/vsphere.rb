@@ -188,14 +188,16 @@ module Vmpooler
         def vms_in_pool(pool_name)
           vms = []
           with_circuit_breaker do
-            @connection_pool.with_metrics do |pool_object|
-              connection = ensured_vsphere_connection(pool_object)
-              folder_object = find_vm_folder(pool_name, connection)
+            Timeout.timeout(vsphere_connection_timeout) do
+              @connection_pool.with_metrics do |pool_object|
+                connection = ensured_vsphere_connection(pool_object)
+                folder_object = find_vm_folder(pool_name, connection)
 
-              next if folder_object.nil?
+                next if folder_object.nil?
 
-              folder_object.childEntity.each do |vm|
-                vms << { 'name' => vm.name } if vm.is_a? RbVmomi::VIM::VirtualMachine
+                folder_object.childEntity.each do |vm|
+                  vms << { 'name' => vm.name } if vm.is_a? RbVmomi::VIM::VirtualMachine
+                end
               end
             end
           end
@@ -309,12 +311,14 @@ module Vmpooler
         def get_vm(pool_name, vm_name)
           vm_hash = nil
           with_circuit_breaker do
-            @connection_pool.with_metrics do |pool_object|
-              connection = ensured_vsphere_connection(pool_object)
-              vm_object = find_vm(pool_name, vm_name, connection)
-              next if vm_object.nil?
+            Timeout.timeout(vsphere_connection_timeout) do
+              @connection_pool.with_metrics do |pool_object|
+                connection = ensured_vsphere_connection(pool_object)
+                vm_object = find_vm(pool_name, vm_name, connection)
+                next if vm_object.nil?
 
-              vm_hash = generate_vm_hash(vm_object, pool_name)
+                vm_hash = generate_vm_hash(vm_object, pool_name)
+              end
             end
           end
           vm_hash
@@ -403,11 +407,13 @@ module Vmpooler
         def get_vm_ip_address(vm_name, pool_name)
           ip = nil
           with_circuit_breaker do
-            @connection_pool.with_metrics do |pool_object|
-              connection = ensured_vsphere_connection(pool_object)
-              vm_object = find_vm(pool_name, vm_name, connection)
-              vm_hash = generate_vm_hash(vm_object, pool_name)
-              ip = vm_hash['ip']
+            Timeout.timeout(vsphere_connection_timeout) do
+              @connection_pool.with_metrics do |pool_object|
+                connection = ensured_vsphere_connection(pool_object)
+                vm_object = find_vm(pool_name, vm_name, connection)
+                vm_hash = generate_vm_hash(vm_object, pool_name)
+                ip = vm_hash['ip']
+              end
             end
           end
           ip
@@ -658,9 +664,7 @@ module Vmpooler
         end
 
         def vsphere_connection_ok?(connection)
-          Timeout.timeout(vsphere_connection_timeout) do
-            _result = connection.serviceInstance.CurrentTime
-          end
+          _result = connection.serviceInstance.CurrentTime
           true
         rescue StandardError
           false
@@ -675,7 +679,8 @@ module Vmpooler
                                               user: provider_config['username'],
                                               password: provider_config['password'],
                                               insecure: provider_config['insecure'] || false,
-                                              timeout: vsphere_connection_timeout
+                                              read_timeout: vsphere_connection_timeout,
+                                              open_timeout: vsphere_connection_timeout
             metrics.increment('connect.open')
             connection
           rescue StandardError => e
