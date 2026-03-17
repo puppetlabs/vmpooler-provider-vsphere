@@ -8,9 +8,16 @@
 
 - \(P4DEVOPS-9438\) Wire circuit breaker into vSphere provider with connection timeouts [\#62](https://github.com/puppetlabs/vmpooler-provider-vsphere/pull/62) ([smahima27](https://github.com/smahima27))
 
+**Fixed bugs:**
+
+- \(RE-15750\) Handle vm no longer existing when attempting to migrate. [\#53](https://github.com/puppetlabs/vmpooler-provider-vsphere/pull/53) ([isaac-jha](https://github.com/isaac-jha))
+
 **Merged pull requests:**
 
 - \(maint\) Release prep 3.4.0 [\#63](https://github.com/puppetlabs/vmpooler-provider-vsphere/pull/63) ([smahima27](https://github.com/smahima27))
+- Bump actions/github-script from 6 to 7 [\#60](https://github.com/puppetlabs/vmpooler-provider-vsphere/pull/60) ([dependabot\[bot\]](https://github.com/apps/dependabot))
+- Bump actions/checkout from 3 to 4 [\#59](https://github.com/puppetlabs/vmpooler-provider-vsphere/pull/59) ([dependabot\[bot\]](https://github.com/apps/dependabot))
+- Bump actions/setup-java from 3 to 4 [\#58](https://github.com/puppetlabs/vmpooler-provider-vsphere/pull/58) ([dependabot\[bot\]](https://github.com/apps/dependabot))
 
 ## [3.3.4](https://github.com/puppetlabs/vmpooler-provider-vsphere/tree/3.3.4) (2023-08-30)
 
@@ -18,7 +25,7 @@
 
 **Fixed bugs:**
 
-- \(maint\) Convert booleans and Time objects to strings when being added to redis [\#51](https://github.com/puppetlabs/vmpooler-provider-vsphere/pull/51) ([isaac-hammes](https://github.com/isaac-hammes))
+- \(maint\) Convert booleans and Time objects to strings when being added to redis [\#51](https://github.com/puppetlabs/vmpooler-provider-vsphere/pull/51) ([isaac-jha](https://github.com/isaac-jha))
 
 ## [3.3.3](https://github.com/puppetlabs/vmpooler-provider-vsphere/tree/3.3.3) (2023-08-28)
 
@@ -26,7 +33,7 @@
 
 **Fixed bugs:**
 
-- \(maint\) Update Gemfile.lock and use block for transaction. [\#49](https://github.com/puppetlabs/vmpooler-provider-vsphere/pull/49) ([isaac-hammes](https://github.com/isaac-hammes))
+- \(maint\) Update Gemfile.lock and use block for transaction. [\#49](https://github.com/puppetlabs/vmpooler-provider-vsphere/pull/49) ([isaac-jha](https://github.com/isaac-jha))
 
 ## [3.3.2](https://github.com/puppetlabs/vmpooler-provider-vsphere/tree/3.3.2) (2023-08-23)
 
@@ -34,7 +41,7 @@
 
 **Fixed bugs:**
 
-- \(maint\) Increase timeout for cloned vms to obtain IPs. [\#47](https://github.com/puppetlabs/vmpooler-provider-vsphere/pull/47) ([isaac-hammes](https://github.com/isaac-hammes))
+- \(maint\) Increase timeout for cloned vms to obtain IPs. [\#47](https://github.com/puppetlabs/vmpooler-provider-vsphere/pull/47) ([isaac-jha](https://github.com/isaac-jha))
 
 ## [3.3.1](https://github.com/puppetlabs/vmpooler-provider-vsphere/tree/3.3.1) (2023-08-22)
 
@@ -50,7 +57,7 @@
 
 **Implemented enhancements:**
 
-- \(POD-10\) Log reason for failed VM checks. [\#42](https://github.com/puppetlabs/vmpooler-provider-vsphere/pull/42) ([isaac-hammes](https://github.com/isaac-hammes))
+- \(POD-10\) Log reason for failed VM checks. [\#42](https://github.com/puppetlabs/vmpooler-provider-vsphere/pull/42) ([isaac-jha](https://github.com/isaac-jha))
 
 ## [3.2.0](https://github.com/puppetlabs/vmpooler-provider-vsphere/tree/3.2.0) (2023-08-10)
 
@@ -89,7 +96,7 @@
 
 **Implemented enhancements:**
 
-- \(RE-15161\) Use timeout builtin to TCPSocket when opening sockets. [\#30](https://github.com/puppetlabs/vmpooler-provider-vsphere/pull/30) ([isaac-hammes](https://github.com/isaac-hammes))
+- \(RE-15161\) Use timeout builtin to TCPSocket when opening sockets. [\#30](https://github.com/puppetlabs/vmpooler-provider-vsphere/pull/30) ([isaac-jha](https://github.com/isaac-jha))
 
 ## [2.0.0](https://github.com/puppetlabs/vmpooler-provider-vsphere/tree/2.0.0) (2023-01-30)
 
