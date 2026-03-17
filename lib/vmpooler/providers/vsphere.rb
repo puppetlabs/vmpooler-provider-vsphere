@@ -75,7 +75,7 @@ module Vmpooler
               transaction.hset("vmpooler__vm__#{vm_name}", 'destroy', Time.now.to_s)
 
               # Auto-expire metadata key
-              transaction.expire("vmpooler__vm__#{vm_name}", (data_ttl * 60 * 60))
+              transaction.expire("vmpooler__vm__#{vm_name}", data_ttl * 60 * 60)
             end
           end
 
@@ -614,7 +614,7 @@ module Vmpooler
           pool_configuration = pool_config(pool_name)
           return nil if pool_configuration.nil?
 
-          hostname = vm_object.summary.guest.hostName if vm_object.summary&.guest && vm_object.summary.guest.hostName
+          hostname = vm_object.summary.guest.hostName if vm_object.summary&.guest&.hostName
           boottime = vm_object.runtime.bootTime if vm_object.runtime&.bootTime
           powerstate = vm_object.runtime.powerState if vm_object.runtime&.powerState
 
@@ -732,7 +732,7 @@ module Vmpooler
 
           # Reverse the array back to normal and
           # then convert the array of paths into a '/' seperated string
-          (full_path.reverse.map { |p| p[1] }).join('/')
+          full_path.reverse.map { |p| p[1] }.join('/')
         end
 
         def add_disk(vm, size, datastore, connection, datacentername)
@@ -1113,7 +1113,7 @@ module Vmpooler
           vm_object = find_vm(pool_name, vm_name, connection)
           return nil if vm_object.nil?
 
-          parent_host_object = vm_object.summary.runtime.host if vm_object.summary&.runtime && vm_object.summary.runtime.host
+          parent_host_object = vm_object.summary.runtime.host if vm_object.summary&.runtime&.host
           raise('Unable to determine which host the VM is running on') if parent_host_object.nil?
 
           parent_host = parent_host_object.name
@@ -1258,7 +1258,8 @@ module Vmpooler
         def linked_clone?(pool)
           return if pool['create_linked_clone'] == false
           return true if pool['create_linked_clone']
-          return true if @config[:config]['create_linked_clones']
+
+          true if @config[:config]['create_linked_clones']
         end
       end
     end
