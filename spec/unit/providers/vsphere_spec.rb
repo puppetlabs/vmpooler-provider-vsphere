@@ -1334,10 +1334,12 @@ EOT
     context 'successful connection' do
       it 'should use the supplied credentials' do
         expect(RbVmomi::VIM).to receive(:connect).with({
-          :host     => credentials['server'],
-          :user     => credentials['username'],
-          :password => credentials['password'],
-          :insecure => credentials['insecure']
+          :host         => credentials['server'],
+          :user         => credentials['username'],
+          :password     => credentials['password'],
+          :insecure     => credentials['insecure'],
+          :read_timeout => 60,
+          :open_timeout => 60
         }).and_return(connection)
         subject.connect_to_vsphere
       end
@@ -1346,10 +1348,12 @@ EOT
         config[:providers][:vsphere][:insecure] = true
 
         expect(RbVmomi::VIM).to receive(:connect).with({
-          :host     => credentials['server'],
-          :user     => credentials['username'],
-          :password => credentials['password'],
-          :insecure => true,
+          :host         => credentials['server'],
+          :user         => credentials['username'],
+          :password     => credentials['password'],
+          :insecure     => true,
+          :read_timeout => 60,
+          :open_timeout => 60
         }).and_return(connection)
         subject.connect_to_vsphere
       end
@@ -1358,10 +1362,12 @@ EOT
         config[:providers][:vsphere][:insecure] = nil
 
         expect(RbVmomi::VIM).to receive(:connect).with({
-          :host     => credentials['server'],
-          :user     => credentials['username'],
-          :password => credentials['password'],
-          :insecure => true
+          :host         => credentials['server'],
+          :user         => credentials['username'],
+          :password     => credentials['password'],
+          :insecure     => true,
+          :read_timeout => 60,
+          :open_timeout => 60
         }).and_return(connection)
 
         subject.connect_to_vsphere
