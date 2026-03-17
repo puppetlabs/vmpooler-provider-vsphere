@@ -15,9 +15,9 @@
 **Merged pull requests:**
 
 - \(maint\) Release prep 3.4.0 [\#63](https://github.com/puppetlabs/vmpooler-provider-vsphere/pull/63) ([smahima27](https://github.com/smahima27))
-- Bump actions/github-script from 6 to 7 [\#60](https://github.com/puppetlabs/vmpooler-provider-vsphere/pull/60) ([dependabot\[bot\]](https://github.com/apps/dependabot))
-- Bump actions/checkout from 3 to 4 [\#59](https://github.com/puppetlabs/vmpooler-provider-vsphere/pull/59) ([dependabot\[bot\]](https://github.com/apps/dependabot))
-- Bump actions/setup-java from 3 to 4 [\#58](https://github.com/puppetlabs/vmpooler-provider-vsphere/pull/58) ([dependabot\[bot\]](https://github.com/apps/dependabot))
+- Bump actions/github-script from 6 to 7 [\#60](https://github.com/puppetlabs/vmpooler-provider-vsphere/pull/60) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Bump actions/checkout from 3 to 4 [\#59](https://github.com/puppetlabs/vmpooler-provider-vsphere/pull/59) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Bump actions/setup-java from 3 to 4 [\#58](https://github.com/puppetlabs/vmpooler-provider-vsphere/pull/58) ([dependabot[bot]](https://github.com/apps/dependabot))
 
 ## [3.3.4](https://github.com/puppetlabs/vmpooler-provider-vsphere/tree/3.3.4) (2023-08-30)
 
