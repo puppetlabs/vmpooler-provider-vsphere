@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.4.0](https://github.com/puppetlabs/vmpooler-provider-vsphere/tree/3.4.0) (2026-03-17)
+
+[Full Changelog](https://github.com/puppetlabs/vmpooler-provider-vsphere/compare/3.3.4...3.4.0)
+
+**New features:**
+
+- \(P4DEVOPS-9438\) Wire circuit breaker into vSphere provider with connection timeouts [\#62](https://github.com/puppetlabs/vmpooler-provider-vsphere/pull/62) ([smahima27](https://github.com/smahima27))
+
 ## [3.3.4](https://github.com/puppetlabs/vmpooler-provider-vsphere/tree/3.3.4) (2023-08-30)
 
 [Full Changelog](https://github.com/puppetlabs/vmpooler-provider-vsphere/compare/3.3.3...3.3.4)

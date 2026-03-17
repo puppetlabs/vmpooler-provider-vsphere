@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    vmpooler-provider-vsphere (3.3.4)
+    vmpooler-provider-vsphere (3.4.0)
       rbvmomi2 (>= 3.1, < 4.0)
       vmpooler (~> 3.0)
 
