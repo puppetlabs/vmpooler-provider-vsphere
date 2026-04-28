@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.repository == 'puppetlabs/vmpooler-provider-vsphere'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Get Current Version
         uses: actions/github-script@v7
